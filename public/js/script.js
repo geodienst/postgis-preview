@@ -44,6 +44,8 @@
       $('#run').removeClass('active');
       $('#notifications').show();
       $('#download').show();
+      $('#geojson').attr('href', 'sql.php?q=' + encodeURIComponent(sql) + '&format=geojson');
+      $('#csv').attr('href', 'sql.php?q=' + encodeURIComponent(sql) + '&format=csv');
       if (data.error !== undefined){
         //write the error in the sidebar
         $('#notifications').removeClass().addClass('alert alert-danger');
@@ -102,16 +104,6 @@
     historyIndex++;
     updateSQL(queryHistory[historyIndex]);
     updateHistoryButtons();
-  });
-
-  $('#geojson').click(function() {
-    var url = 'sql.php?q=' + encodeURIComponent(sql) + '&format=geojson';
-    window.open(url, '_blank');
-  });
-
-  $('#csv').click(function() {
-    var url = 'sql.php?q=' + encodeURIComponent(sql) + '&format=csv';
-    window.open(url, '_blank');
   });
 
   // initialize keyboard shortcut for submit
