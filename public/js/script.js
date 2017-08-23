@@ -11,7 +11,7 @@
 
   //add CartoDB 'dark matter' basemap
   L.tileLayer('http://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png', {
-attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, &copy; <a href="http://cartodb.com/attributions">CartoDB</a>'
+    attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, &copy; <a href="http://cartodb.com/attributions">CartoDB</a>'
   }).addTo(map);
 
   var queryHistory = (localStorage.history) ? JSON.parse(localStorage.history) : [];
@@ -40,7 +40,7 @@ attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreet
     addToHistory(sql);
   
     //pass the query to the sql api endpoint
-    $.getJSON('/sql?q=' + encodeURIComponent(sql), function(data) {
+    $.getJSON('sql.php?q=' + encodeURIComponent(sql), function(data) {
       $('#run').removeClass('active');
       $('#notifications').show();
       $('#download').show();
@@ -48,13 +48,12 @@ attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreet
         //write the error in the sidebar
         $('#notifications').removeClass().addClass('alert alert-danger');
         $('#notifications').text(data.error);
-      } else if (data.objects.output.geometries.length == 0) {
+      } else if (data.features.length == 0) {
         $('#notifications').removeClass().addClass('alert alert-warning');
         $('#notifications').text('Your query returned no features.');
       } else {
-        //convert topojson coming over the wire to geojson using mapbox omnivore
-        var features = omnivore.topojson.parse(data); //should this return a featureCollection?  Right now it's just an array of features.
-        var featureCount = data.objects.output.geometries.length;
+        var features = data.features;
+        var featureCount = data.features.length;
         var geoFeatures = features.filter(function(feature) {
           return feature.geometry;
         });
@@ -106,12 +105,12 @@ attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreet
   });
 
   $('#geojson').click(function() {
-    var url = '/sql?q=' + encodeURIComponent(sql) + '&format=geojson';
+    var url = 'sql.php?q=' + encodeURIComponent(sql) + '&format=geojson';
     window.open(url, '_blank');
   });
 
   $('#csv').click(function() {
-    var url = '/sql?q=' + encodeURIComponent(sql) + '&format=csv';
+    var url = 'sql.php?q=' + encodeURIComponent(sql) + '&format=csv';
     window.open(url, '_blank');
   });
 
