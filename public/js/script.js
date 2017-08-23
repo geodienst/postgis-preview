@@ -93,28 +93,22 @@
     }
   });
 
-  //forward and backward buttons for query history
-  $('#history-previous').click(function() {
+  function previousQuery() {
     historyIndex--;
     updateSQL(queryHistory[historyIndex]);
     updateHistoryButtons();
-  });
+  }
 
-  $('#history-next').click(function() {
+  function nextQuery() {
     historyIndex++;
     updateSQL(queryHistory[historyIndex]);
     updateHistoryButtons();
-  });
+  }
 
-  // initialize keyboard shortcut for submit
-  $(window).keydown(function(e){
-    if (e.metaKey && e.keyCode == 83) {
-      // crtl/cmd+S for submit
-      e.preventDefault();
-      submitQuery();
-      return false;
-    }
-  });
+  //forward and backward buttons for query history
+  $('#history-previous').click(previousQuery);
+
+  $('#history-next').click(nextQuery);
 
   function propertiesTable( properties ) {
     if (!properties) {
@@ -249,7 +243,9 @@
     });
     editor.setOption("extraKeys", {
       "F5": submitQuery,
-      "Cmd-Enter": submitQuery
+      "Cmd-Enter": submitQuery,
+      "Alt-Up": previousQuery,
+      "Alt-Down": nextQuery
     });
     editor.replaceRange('\n', {line:2,ch:0}); // create newline for editing
     editor.setCursor(2,0);
