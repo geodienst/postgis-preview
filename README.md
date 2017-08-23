@@ -1,5 +1,7 @@
+This fork's main purpose is to implement the backend in PHP.
+
 # PostGIS Preview
-A lightweight node api and frontend for quickly previewing PostGIS queries. _Pull Requests Welcomed!_  Take a look at the [open issues](https://github.com/chriswhong/postgis-preview/issues)
+A lightweight ~~node~~ PHP api and frontend for quickly previewing PostGIS queries. _Pull Requests Welcomed!_  Take a look at the [open issues](https://github.com/chriswhong/postgis-preview/issues)
 
 ![preview](https://cloud.githubusercontent.com/assets/1833820/14897977/7e8088cc-0d52-11e6-9c0e-b56f3b2af954.gif)
 
