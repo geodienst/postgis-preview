@@ -58,10 +58,7 @@ function query_geojson($pdo, $user_query, &$query)
 		foreach ($geometry_columns as $geometry_column) {
 			$features[] = [
 				'type' => 'Feature',
-				'properties' => array_merge(
-					array_diff_key($row, array_flip($geometry_columns)),
-					['_geometry_column' => $geometry_column]
-				),
+				'properties' => array_diff_key($row, array_flip($geometry_columns)),
 				'geometry' =>  json_decode($row[$geometry_column])
 			];
 		}
