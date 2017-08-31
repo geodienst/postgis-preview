@@ -200,8 +200,9 @@
 
   function addToHistory(sql) {
     //only store the last 25 queries
-    if(queryHistory.length>25) {
+    while (queryHistory.length > 25) {
       queryHistory.shift();
+      historyIndex--;
     }
 
     queryHistory.push(sql);
