@@ -26,29 +26,26 @@
 	</div>
 	<div id="container">
 		<div id="sidebar">
-	
-		
-						<div class="col-md-12">
-							<textarea id="sqlPane" class="form-control" rows="15" required>/* Type your SQL here */</textarea>
-							<div id="history-previous" class="btn btn-info disabled" title="Previous executed query [Alt+Up]">
-								<span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span>
-							</div>
-							<div id="history-next" class="btn btn-info disabled" title="Next executed query [Alt-Down]">
-								<span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span>
-							</div>
-							<button id="run" type="submit" class="btn btn-info pull-right has-spinner" href="#" title="Run query [F5 or Cmd+Enter]">
-								<span class="spinner"><i class="fa fa-refresh fa-spin"></i></span>
-								Submit
-							</button>
-							<div id="notifications"></div>
-							<div id="download">
-								<h4>Download</h4>	
-								<a href="#" id="geojson" target="_blank" download="query.geojson" class="btn btn-info pull-left">Geojson</a>
-								<a href="#" id="csv" target="_blank" download="query.csv" class="btn btn-info pull-left">CSV</a>
-							</div>
-						</div>
-					
-		
+			<div class="resize-handle"></div>
+			<div class="col-md-12">
+				<textarea id="sqlPane" class="form-control" rows="15" required>/* Type your SQL here */</textarea>
+				<div id="history-previous" class="btn btn-info disabled" title="Previous executed query [Alt+Up]">
+					<span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span>
+				</div>
+				<div id="history-next" class="btn btn-info disabled" title="Next executed query [Alt-Down]">
+					<span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span>
+				</div>
+				<button id="run" type="submit" class="btn btn-info pull-right has-spinner" href="#" title="Run query [F5 or Cmd+Enter]">
+					<span class="spinner"><i class="fa fa-refresh fa-spin"></i></span>
+					Submit
+				</button>
+				<div id="notifications"></div>
+				<div id="download">
+					<h4>Download</h4>	
+					<a href="#" id="geojson" target="_blank" download="query.geojson" class="btn btn-info pull-left">Geojson</a>
+					<a href="#" id="csv" target="_blank" download="query.csv" class="btn btn-info pull-left">CSV</a>
+				</div>
+			</div>
 		</div>
 		<div id="map"></div>
 		<div id="table">
