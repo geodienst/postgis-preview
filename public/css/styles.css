@@ -18,10 +18,19 @@ body {
   height: 100%;
   max-width: 100%;
   float: right;
-  -webkit-transition: all 0.25s ease-out;
-  -moz-transition: all 0.25s ease-out;
-  transition: all 0.25s ease-out;
+  position: relative;
 }
+
+#sidebar .resize-handle {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -5px;
+  width: 10px;
+  z-index: 10;
+  cursor: ew-resize;
+}
+
 .navbar .navbar-brand {
   font-weight: bold;
   font-size: 25px;

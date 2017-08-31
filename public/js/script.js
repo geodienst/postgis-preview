@@ -229,6 +229,44 @@
     }
   }
 
+  function resizeable(area) {
+    let pos;
+    let width;
+
+    let setWidth = function(preferredWidth, store) {
+      let width = Math.max(Math.min(preferredWidth, window.innerWidth - 100), 200);
+      $(area).width(width);
+      map.invalidateSize();
+      if (store)
+        window.localStorage[name + '_width'] = width;
+    }
+
+    area.find('.resize-handle').on('mousedown', function(e) {
+      pos = e.clientX;
+      width = $(area).width();
+      e.preventDefault();
+    });
+
+    $(document.body).on('mouseup', function(e) {
+      if (pos !== null) {
+        pos = null;
+        e.preventDefault();
+      }
+    });
+
+    $(document.body).on('mousemove', function(e) {
+      if (pos !== null) {
+        setWidth(width - (e.clientX - pos), true);
+        e.preventDefault();
+      }
+    });
+
+    if (window.localStorage[name + '_width'] !== undefined)
+      setWidth(window.localStorage[name + '_width']);
+  }
+
+  resizeable($('#sidebar'));
+
   //Load codemirror for syntax highlighting
   window.onload = function() {            
     window.editor = CodeMirror.fromTextArea(document.getElementById('sqlPane'), {
