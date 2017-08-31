@@ -37,6 +37,9 @@ function query_geojson($pdo, $user_query, &$query)
 	// Pick all the geometry columns
 	$geometry_columns = array_keys($columns, 'geometry');
 
+	if (count($geometry_columns) === 0)
+		throw new Exception('Query does not contain any geometry columns');
+
 	// Create the outer select query, but give the geometry columns special
 	// treatment (as in convert those to GeoJSON and WGS84)
 	$sql_fields = array_map(function($field, $type) {
