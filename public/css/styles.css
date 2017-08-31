@@ -6,19 +6,31 @@ html, body, #container {
 body {
   padding-top: 50px;
 }
+
+#container {
+  display: flex;
+}
+
 #map, #table {
   width: auto;
   height: 100%;
   box-shadow: 0 0 10px rgba(0,0,0,0.55);
   position: relative;
   display: block;
+  flex-grow: 1;
 }
+
+#table {
+  display: none;
+}
+
 #sidebar {
   width: 300px;
   height: 100%;
   max-width: 100%;
-  float: right;
   position: relative;
+  flex-grow: 0;
+  order: 1;
 }
 
 #sidebar .resize-handle {
@@ -53,10 +65,6 @@ body {
 
 #notifications {
   margin-top: 15px;
-}
-
-#table {
-  margin-right: 300px;
 }
 
 .dataTables_wrapper {

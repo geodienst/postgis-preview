@@ -234,7 +234,7 @@
     let width;
 
     let setWidth = function(preferredWidth, store) {
-      let width = Math.max(Math.min(preferredWidth, window.innerWidth - 100), 200);
+      let width = Math.max(Math.min(preferredWidth, window.innerWidth - 200), 200);
       $(area).width(width);
       map.invalidateSize();
       if (store)
