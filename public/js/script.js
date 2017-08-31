@@ -162,40 +162,39 @@
       $('#notifications').empty();
   }
 
+  let table = null;
+
   function buildTable( features ) {
     //assemble a table from the geojson properties
 
     //first build the header row
-    var fields = Object.keys( features[0].properties );
+    let fields = Object.keys(features[0].properties);
 
-    $('#table').find('thead').append('<tr/>');
-    $('#table').find('tfoot').append('<tr/>');
+    let columns = fields.map(field => ({
+      title: field,
+      data: field
+    }));
 
-    fields.forEach( function( field ) {
-      $('#table').find('thead').find('tr').append('<th>' + field + '</th>');
-      $('#table').find('tfoot').find('tr').append('<th>' + field + '</th>')
+    let data = features.map(feature => feature.properties);
+
+    if (table) clearTable();
+
+    table = $('#table > table').DataTable({
+      columns: columns,
+      data: data,
+      responsive: true
     });
-
-    features.forEach( function( feature ) {
-      //create tr with tds in memory
-      var $tr = $('<tr/>');
-
-      fields.forEach( function( field ) {
-        $tr.append('<td>' + feature.properties[field] + '</td>')
-      })
-
-
-
-      $('#table').find('tbody').append($tr);
-    });
-
-      $('#table>table').DataTable();
   }
 
   function clearTable() {
-    $('#table').find('thead').empty();
-    $('#table').find('tfoot').empty();
-    $('#table').find('tbody').empty();
+    if (!table)
+      return;
+    
+    table.destroy(true);
+    table = null;
+    $('<table>')
+      .addClass('table table-striped table-bordered')
+      .appendTo('#table');
   };
 
   function addToHistory(sql) {
