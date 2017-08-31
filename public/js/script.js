@@ -245,9 +245,14 @@
       "F5": submitQuery,
       "Cmd-Enter": submitQuery,
       "Alt-Up": previousQuery,
-      "Alt-Down": nextQuery
+      "Alt-Down": nextQuery,
+      "Ctrl-Space": "autocomplete"
     });
     editor.replaceRange('\n', {line:2,ch:0}); // create newline for editing
     editor.setCursor(2,0);
+
+    $.getJSON('schema.php', function(schema) {
+      editor.setOption('hintOptions', {tables: schema});
+    });
   };
 }());
