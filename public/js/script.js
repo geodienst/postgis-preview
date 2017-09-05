@@ -5,14 +5,31 @@
     .setView([40.708816,-74.008799], 11);
   
   //layer will be where we store the L.geoJSON we'll be drawing on the map
-  var layer;
+  var querylayer;
 
   var sql;
 
   //add CartoDB 'dark matter' basemap
-  L.tileLayer('http://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png', {
+  var darkmatter = L.tileLayer('http://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png', { maxZoom : 21,
     attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, &copy; <a href="http://cartodb.com/attributions">CartoDB</a>'
   }).addTo(map);
+
+  var Esri_WorldImagery = L.tileLayer('http://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+  maxZoom: 21, attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
+  });
+
+  var baseMaps = {
+    "imagery": Esri_WorldImagery,
+    "darkmatter": darkmatter
+  };
+
+
+  var overlayMaps = {
+  };
+
+  overlayMaps[querylayer];  
+
+  L.control.layers(baseMaps,overlayMaps).addTo(map);
 
   var queryHistory = (localStorage.history) ? JSON.parse(localStorage.history) : [];
   var historyIndex = queryHistory.length;
@@ -33,8 +50,8 @@
     sql = editor.getDoc().getValue();
     
     //clear the map
-    if( map.hasLayer(layer)) {
-      layer.clearLayers();
+    if( map.hasLayer(querylayer)) {
+      querylayer.clearLayers();
     }
 
     addToHistory(sql);
@@ -131,7 +148,7 @@
 
   function addLayer( features ) {
     //create an L.geoJson layer, add it to the map
-      layer = L.geoJson(features, {
+      querylayer = L.geoJson(features, {
         style: {
             color: '#fff', // border color
             fillColor: 'steelblue',
@@ -158,7 +175,7 @@
         }
       }).addTo(map)
 
-      map.fitBounds(layer.getBounds());
+      map.fitBounds(querylayer.getBounds());
       $('#notifications').empty();
   }
 
