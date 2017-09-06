@@ -12,8 +12,7 @@
   //layer will be where we store the L.geoJSON we'll be drawing on the map
   var querylayer;
 
-  var sql;
-
+  // Contains the current request promise, which we can then abort() if necessary
   var request;
 
   //add CartoDB 'dark matter' basemap
