@@ -31,7 +31,7 @@ function query_columns($pdo, $query)
 	return $columns;
 }
 
-function query_geojson($pdo, $user_query, &$query)
+function query_geojson($pdo, $user_query, $limit, $bbox, &$query)
 {
 	// First determine the column types
 	$columns = query_columns($pdo, $user_query);
@@ -53,6 +53,25 @@ function query_geojson($pdo, $user_query, &$query)
 
 	// Generate the real query with the user query as inner query
 	$query = 'SELECT ' . implode(', ', $sql_fields) . ' FROM (' . $user_query . ') AS q';
+
+	// If there is a bbox specified, add that as a WHERE part to the query, requiring each
+	// row to have at least one of its geometry columns be inside the bounding box
+	if ($bbox !== null) {
+		$envelope = array_map('floatval', explode(',', $bbox));
+
+		if (count($envelope) !== 4)
+			throw new InvalidArgumentException('Malformed bbox parameter');
+
+		$bbox_conditions = [];
+		foreach ($geometry_columns as $column)
+			$bbox_conditions[] = vsprintf('(ST_Transform(q."%s", 4326) && ST_MakeEnvelope(%f, %f, %f, %f))', array_merge([$column], $envelope));
+
+		$query .= ' WHERE ' . implode(' OR ', $bbox_conditions);
+	}
+
+	// If there is a limit specified, add it to the query
+	if ($limit !== null)
+		$query .= sprintf(' LIMIT %d', $limit);
 
 	$stmt = $pdo->query($query);
 
@@ -120,12 +139,16 @@ try {
 
 	$user_query = rtrim($_GET['q'], ';');
 
+	$limit = isset($_GET['limit']) ? $_GET['limit'] : null;
+
+	$bbox = isset($_GET['bbox']) ? $_GET['bbox'] : null;
+
 	$config = require '../config.php';
 	$pdo = connect($config['DATABASE_URL']);
 
 	switch ($format) {
 		case 'geojson':
-			$output = query_geojson($pdo, $user_query, $query);
+			$output = query_geojson($pdo, $user_query, $limit, $bbox, $query);
 			print_json($output);
 			break;
 

@@ -121,6 +121,15 @@ body {
   display: none;
 }
 
+.limit-controls input[type=number] {
+  width: 5em;
+  border: 0;
+  border-bottom: 1px solid #333;
+  font: inherit;
+  padding: 0;
+  margin: 0;
+}
+
 .leaflet-popup-content {
   max-height: 50vh;
   overflow-y: scroll;

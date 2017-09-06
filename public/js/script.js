@@ -59,16 +59,22 @@
     sql = editor.getDoc().getValue();
     
     //clear the map
-    if( map.hasLayer(querylayer)) {
-      querylayer.clearLayers();
-    }
+    resultLayer.clearLayers();
 
     addToHistory(sql);
+
+    var url = 'sql.php?q=' + encodeURIComponent(sql);
+
+    if ($('#limit-to-count').is(':checked'))
+      url += '&limit=' + $('#limit-count').val();
+
+    if ($('#limit-to-view').is(':checked'))
+      url += '&bbox=' + encodeURIComponent(map.getBounds().toBBoxString());
   
     //pass the query to the sql api endpoint
-    request = $.getJSON('sql.php?q=' + encodeURIComponent(sql), function(data) {
+    request = $.getJSON(url, function(data) {
       // Show any notifications
-      $('#notifications').show();
+      $('#notifications').empty().show();
 
       if (data.error !== undefined){
         //write the error in the sidebar
@@ -177,35 +183,34 @@
 
   function addLayer( features ) {
     //create an L.geoJson layer, add it to the map
-      var queryLayer = L.geoJson(features, {
-        style: {
-            color: '#fff', // border color
-            fillColor: 'steelblue',
-            weight: 1,
-            opacity: 1,
-            fillOpacity: 0.7
-        },
+    L.geoJson(features, {
+      style: {
+          color: '#fff', // border color
+          fillColor: 'steelblue',
+          weight: 1,
+          opacity: 1,
+          fillOpacity: 0.7
+      },
 
-        onEachFeature: function ( feature, layer ) {
-          if (feature.geometry.type !== 'Point') {
-            layer.bindPopup(propertiesTable(feature.properties));
-          }
-        },
-
-        pointToLayer: function ( feature, latlng ) {
-          return L.circleMarker(latlng, {
-            radius: 4,
-            fillColor: "#ff7800",
-            color: "#000",
-            weight: 1,
-            opacity: 1,
-            fillOpacity: 0.8
-          }).bindPopup(propertiesTable(feature.properties));
+      onEachFeature: function ( feature, layer ) {
+        if (feature.geometry.type !== 'Point') {
+          layer.bindPopup(propertiesTable(feature.properties));
         }
-      }).addTo(resultLayer);
+      },
 
-      map.fitBounds(resultLayer.getBounds());
-      $('#notifications').empty();
+      pointToLayer: function ( feature, latlng ) {
+        return L.circleMarker(latlng, {
+          radius: 4,
+          fillColor: "#ff7800",
+          color: "#000",
+          weight: 1,
+          opacity: 1,
+          fillOpacity: 0.8
+        }).bindPopup(propertiesTable(feature.properties));
+      }
+    }).addTo(resultLayer);
+
+    map.fitBounds(resultLayer.getBounds());
   }
 
   let table = null;

@@ -44,10 +44,17 @@
 						&times;
 					</button>
 				</div>
-				
+				<div class="limit-controls">
+					<div class="checkbox">
+						<label><input id="limit-to-count" type="checkbox" checked> Limit to <input type="number" id="limit-count" min="0" value="5000"> features</label>
+					</div>
+					<div class="checkbox">
+						<label><input id="limit-to-view" type="checkbox"> Limit to current view</label>
+					</div>
+				</div>
 				<div id="notifications"></div>
 				<div id="download">
-					<h4>Download</h4>	
+					<h4>Download</h4>
 					<a href="#" id="geojson" target="_blank" download="query.geojson" class="btn btn-info pull-left">Geojson</a>
 					<a href="#" id="csv" target="_blank" download="query.csv" class="btn btn-info pull-left">CSV</a>
 				</div>
