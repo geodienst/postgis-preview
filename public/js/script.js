@@ -25,11 +25,14 @@
     "darkmatter": darkmatter
   };
 
+  // Will contain the results from the query
+  var resultLayer = L.featureGroup().addTo(map);
+
 
   var overlayMaps = {
+    'features': resultLayer
   };
 
-  overlayMaps[querylayer];  
 
   L.control.layers(baseMaps,overlayMaps).addTo(map);
 
@@ -174,7 +177,7 @@
 
   function addLayer( features ) {
     //create an L.geoJson layer, add it to the map
-      querylayer = L.geoJson(features, {
+      var queryLayer = L.geoJson(features, {
         style: {
             color: '#fff', // border color
             fillColor: 'steelblue',
@@ -199,9 +202,9 @@
             fillOpacity: 0.8
           }).bindPopup(propertiesTable(feature.properties));
         }
-      }).addTo(map)
+      }).addTo(resultLayer);
 
-      map.fitBounds(querylayer.getBounds());
+      map.fitBounds(resultLayer.getBounds());
       $('#notifications').empty();
   }
 
