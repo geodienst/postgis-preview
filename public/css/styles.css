@@ -22,6 +22,7 @@ body {
 
 #table {
   display: none;
+  overflow: hidden;
 }
 
 #sidebar {
@@ -29,7 +30,7 @@ body {
   height: 100%;
   max-width: 100%;
   position: relative;
-  flex-grow: 0;
+  flex: 0 0 auto;
   order: 1;
 }
 
