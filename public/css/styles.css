@@ -88,6 +88,16 @@ body {
   overflow-x: scroll;
 }
 
+.dataTables_wrapper .datatable-controls {
+  text-align: right;
+}
+
+.dataTables_wrapper .datatable-controls .dt-buttons,
+.dataTables_wrapper .datatable-controls .dataTables_filter {
+  margin-left: 1em;
+  display: inline-block;
+}
+
 .CodeMirror {
   padding-left: 8px;
   margin-bottom: 15px;

@@ -3,6 +3,11 @@
   //initialize a leaflet map
   var map = L.map('map')
     .setView([40.708816,-74.008799], 11);
+
+  const highlightStyle = {
+    fillColor: 'red',
+    fillOpacity: 1.0
+  };
   
   //layer will be where we store the L.geoJSON we'll be drawing on the map
   var querylayer;
@@ -86,26 +91,19 @@
         $('#notifications').removeClass().addClass('alert alert-warning');
         $('#notifications').text('Your query returned no features.');
       } else {
-        var features = data.features;
-        var featureCount = data.features.length;
-        var geoFeatures = features.filter(function(feature) {
-          return feature.geometry;
+        // Add an id to link this feature in the map and the table
+        data.features.forEach((feature, index) => {
+          feature.properties._feature_id = index;
         });
         $('#notifications').removeClass().addClass('alert alert-success');
-        if (geoFeatures.length) {
-          addLayer( geoFeatures ); //draw the map layer
-          $('#notifications').text(featureCount + ' features returned.');
+        if (data.features.some(feature => feature.geometry)) {
+          addLayer(data.features.filter(feature => feature.geometry)); //draw the map layer
+          $('#notifications').text(data.features.length + ' features returned.');
         } else {
           // There is no map to display, so switch to the data view
-          $('#notifications').html(featureCount + ' features returned.<br/>No geometries returned, see the <a href="#" class="data-view">data view</a> for results.');
-          //toggle map and data view
-          $('a.data-view').click(function(){
-            $('#map').hide();
-            $('#table').show();
-          });
-
+          $('#notifications').html(data.features.length + ' features returned.<br/>No geometries returned, see the <a href="#" class="data-view">data view</a> for results.');
         }
-        buildTable( features ); //build the table
+        buildTable(data.features); //build the table
       }
     });
 
@@ -171,7 +169,7 @@
       <tbody></tbody>\
     </table>');
 
-    var keys = Object.keys(properties);
+    var keys = Object.keys(properties).filter(key => key != '_feature_id');
     var tbody = table.find('tbody');
     for (var k = 0; k < keys.length; k++) {
       var row = $("<tr></tr>").appendTo(tbody);
@@ -215,11 +213,34 @@
 
   let table = null;
 
+  $.fn.dataTable.ext.buttons.highlight = {
+    extend: 'selected',
+    text: 'Highlight on map',
+    action: function(e, dt, button, config) {
+      let featureIds = dt.rows({selected: true}).ids().toArray().map(id => parseInt(id, 10));
+      resultLayer.eachLayer(queryLayer => {
+        queryLayer.eachLayer(feature => {
+          if (featureIds.includes(feature.feature.properties._feature_id)) {
+            feature.setStyle(highlightStyle);
+            feature.bringToFront();
+          } else {
+            queryLayer.resetStyle(feature);
+          }
+        });
+      });
+      switchView('map');
+    }
+  };
+
+  let dataTableLayout = "<'row'<'col-sm-6'l><'col-sm-6 datatable-controls'Bf>>" +
+                        "<'row'<'col-sm-12'tr>>" +
+                        "<'row'<'col-sm-5'i><'col-sm-7'p>>";
+
   function buildTable( features ) {
     //assemble a table from the geojson properties
 
     //first build the header row
-    let fields = Object.keys(features[0].properties);
+    let fields = Object.keys(features[0].properties).filter(field => field != '_feature_id');
 
     let columns = fields.map(field => ({
       title: field,
@@ -231,9 +252,13 @@
     if (table) clearTable();
 
     table = $('#table > table').DataTable({
+      dom: dataTableLayout,
       columns: columns,
+      rowId: '_feature_id',
       data: data,
-      responsive: true
+      responsive: true,
+      select: true,
+      buttons: ['highlight']
     });
   }
 
