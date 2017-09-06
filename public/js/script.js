@@ -56,21 +56,23 @@
 
     clearTable();
 
-    sql = editor.getDoc().getValue();
+    let sql = {
+      q: editor.getDoc().getValue()
+    };
     
+    if ($('#limit-to-count').is(':checked'))
+      sql.limit = $('#limit-count').val();
+
+    if ($('#limit-to-view').is(':checked'))
+      sql.bbox = map.getBounds().toBBoxString();
+  
+    addToHistory(sql);
+
     //clear the map
     resultLayer.clearLayers();
 
-    addToHistory(sql);
+    var url = 'sql.php?' + $.param(sql);
 
-    var url = 'sql.php?q=' + encodeURIComponent(sql);
-
-    if ($('#limit-to-count').is(':checked'))
-      url += '&limit=' + $('#limit-count').val();
-
-    if ($('#limit-to-view').is(':checked'))
-      url += '&bbox=' + encodeURIComponent(map.getBounds().toBBoxString());
-  
     //pass the query to the sql api endpoint
     request = $.getJSON(url, function(data) {
       // Show any notifications
@@ -264,8 +266,28 @@
     updateHistoryButtons();
   }
 
+  function parseBBox(bbox) {
+    let parts = bbox.split(',').map(part => parseFloat(part, 10));
+    return L.latLngBounds([[parts[1], parts[0]], [parts[3], parts[2]]]);
+  }
+
   function updateSQL(sql) {
-    editor.setValue(sql);
+    if (typeof sql == 'string') {
+      // compatibility with old history
+      editor.setValue(sql);
+    } else {
+      editor.setValue(sql.q);
+      $('#limit-to-count').prop('checked', sql.limit);
+      $('#limit-to-view').prop('checked', sql.bbox);
+
+      if (sql.limit) {
+        $('#limit-count').val(sql.limit);
+      }
+
+      if (sql.bbox) {
+        map.fitBounds(parseBBox(sql.bbox));
+      }
+    }
   }
 
   //enable and disable history buttons based on length of queryHistory and historyIndex
