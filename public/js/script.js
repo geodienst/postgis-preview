@@ -167,18 +167,21 @@
       properties = {};
     }
 
-    var table = $("<table><tr><th>Column</th><th>Value</th></tr></table>");
+    var table = $('<table class="table table-condensed">\
+      <thead>\
+        <tr><th>Column</th><th>Value</th></tr>\
+      </thead>\
+      <tbody></tbody>\
+    </table>');
+
     var keys = Object.keys(properties);
-    var banProperties = ['geom'];
+    var tbody = table.find('tbody');
     for (var k = 0; k < keys.length; k++) {
-      if (banProperties.indexOf(keys[k]) === -1) {
-        var row = $("<tr></tr>");
-        row.append($("<td></td>").text(keys[k]));
-        row.append($("<td></td>").text(properties[keys[k]]));
-        table.append(row);
-      }
+      var row = $("<tr></tr>").appendTo(tbody);
+      row.append($("<td></td>").text(keys[k]));
+      row.append($("<td></td>").text(properties[keys[k]]));
     }
-    return '<table border="1">' + table.html() + '</table>';
+    return table.get(0);
   }
 
   function addLayer( features ) {
