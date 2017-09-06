@@ -133,18 +133,13 @@
   abortButton.click(abortQuery);
 
   //toggle map and data view
-  $('.btn-group button').click(function(e) {
-    $(this).addClass('active').siblings().removeClass('active');
+  function switchView(view) {
+    $('.view-switches button').toggleClass('active', function() { return $(this).data('view') == view; });
+    $('#map, #table').toggle(0, function() { return this.id == view; });
+  }
 
-    var view = $(this)[0].innerText;
-
-    if(view == "Data View") {
-      $('#map').hide();
-      $('#table').show();
-    } else {
-      $('#map').show();
-      $('#table').hide();
-    }
+  $('.view-switches button[data-view]').click(function(e) {
+    switchView($(this).data('view'));
   });
 
   function previousQuery() {
