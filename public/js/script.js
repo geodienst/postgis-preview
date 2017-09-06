@@ -32,11 +32,28 @@
   // Will contain the results from the query
   var resultLayer = L.featureGroup().addTo(map);
 
+  // Can be drawn on
+  var drawLayer = L.featureGroup().addTo(map);
 
   var overlayMaps = {
-    'features': resultLayer
+    'features': resultLayer,
+    'draw': drawLayer
   };
 
+  map.addControl(new L.Control.Draw({
+    draw: {
+      marker: false,
+      polyline: false,
+      polygon: {
+        allowIntersection: false,
+        showArea: true
+      }
+    }
+  }));
+
+  map.on(L.Draw.Event.CREATED, function (event) {
+    drawLayer.clearLayers().addLayer(event.layer);
+  });
 
   L.control.layers(baseMaps,overlayMaps).addTo(map);
 
@@ -72,11 +89,14 @@
 
     if ($('#limit-to-view').is(':checked'))
       sql.bbox = map.getBounds().toBBoxString();
-  
-    addToHistory(sql);
+
+    if (drawLayer.getLayers().length)
+      sql.shapes = JSON.stringify(drawLayer.toGeoJSON());
 
     //clear the map
     resultLayer.clearLayers();
+
+    addToHistory(sql);
 
     var url = 'sql.php?' + $.param(sql);
 
