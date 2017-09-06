@@ -9,6 +9,8 @@
 
   var sql;
 
+  var request;
+
   //add CartoDB 'dark matter' basemap
   var darkmatter = L.tileLayer('http://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png', { maxZoom : 21,
     attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, &copy; <a href="http://cartodb.com/attributions">CartoDB</a>'
@@ -35,15 +37,19 @@
   var historyIndex = queryHistory.length;
   updateHistoryButtons();
 
-  //listen for submit of new query
-  $('#run').click(function(){
-    submitQuery();
-  });
+  var abortButton = $('#abort').detach();
+
+  function abortQuery() {
+    request.abort();
+    $('#query-control').removeClass('active disabled');
+    abortButton.detach();
+  }
 
   function submitQuery() {
     $('#notifications').hide();
     $('#download').hide();
-    $('#run').addClass('active');
+    $('#run').addClass('active disabled');
+    $('#query-control').append(abortButton);
 
     clearTable();
 
@@ -57,12 +63,10 @@
     addToHistory(sql);
   
     //pass the query to the sql api endpoint
-    $.getJSON('sql.php?q=' + encodeURIComponent(sql), function(data) {
-      $('#run').removeClass('active');
+    request = $.getJSON('sql.php?q=' + encodeURIComponent(sql), function(data) {
+      // Show any notifications
       $('#notifications').show();
-      $('#download').show();
-      $('#geojson').attr('href', 'sql.php?q=' + encodeURIComponent(sql) + '&format=geojson');
-      $('#csv').attr('href', 'sql.php?q=' + encodeURIComponent(sql) + '&format=csv');
+
       if (data.error !== undefined){
         //write the error in the sidebar
         $('#notifications').removeClass().addClass('alert alert-danger');
@@ -93,7 +97,29 @@
         buildTable( features ); //build the table
       }
     });
+
+    request.done(function() {
+      $('#run').removeClass('active disabled');
+      abortButton.detach();
+    });
+
+    request.done(function() {
+      // Show (and update) download buttons
+      $('#download').show();
+      $('#geojson').attr('href', 'sql.php?q=' + encodeURIComponent(sql) + '&format=geojson');
+      $('#csv').attr('href', 'sql.php?q=' + encodeURIComponent(sql) + '&format=csv');
+    });
+
+    request.fail(function() {
+      $('#run').removeClass('active disabled');
+      abortButton.detach();
+    });
   };
+
+  //listen for submit of new query
+  $('#run').click(submitQuery);
+
+  abortButton.click(abortQuery);
 
   //toggle map and data view
   $('.btn-group button').click(function(e) {

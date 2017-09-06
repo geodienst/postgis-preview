@@ -35,10 +35,16 @@
 				<div id="history-next" class="btn btn-info disabled" title="Next executed query [Alt-Down]">
 					<span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span>
 				</div>
-				<button id="run" type="submit" class="btn btn-info pull-right has-spinner" href="#" title="Run query [F5 or Cmd+Enter]">
-					<span class="spinner"><i class="fa fa-refresh fa-spin"></i></span>
-					Submit
-				</button>
+				<div id="query-control" class="btn-group pull-right" role="group">
+					<button id="run" type="submit" class="btn btn-info has-spinner" href="#" title="Run query [F5 or Cmd+Enter]">
+						<span class="spinner"><i class="fa fa-refresh fa-spin"></i></span>
+						Submit
+					</button>
+					<button id="abort" type="submit" class="btn btn-danger pull-right" href="#" title="Abort query">
+						&times;
+					</button>
+				</div>
+				
 				<div id="notifications"></div>
 				<div id="download">
 					<h4>Download</h4>	

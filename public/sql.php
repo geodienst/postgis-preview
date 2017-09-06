@@ -3,6 +3,8 @@
 error_reporting(E_ALL);
 ini_set('display_errors', true);
 
+ignore_user_abort(false);
+
 function print_json($data) {
 	header('Content-Type: application/json');
 	echo json_encode($data, JSON_PRETTY_PRINT);
