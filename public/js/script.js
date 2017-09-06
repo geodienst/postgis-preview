@@ -44,6 +44,9 @@
   var historyIndex = queryHistory.length;
   updateHistoryButtons();
 
+  // Stops the checkbox from toggling when altering the limit (TODO: this is a dirty hack)
+  $('#limit-count').click(() => false);
+
   var abortButton = $('#abort').detach();
 
   function abortQuery() {
