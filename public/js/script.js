@@ -48,11 +48,14 @@
         allowIntersection: false,
         showArea: true
       }
-    }
+    },
+    edit: {
+      featureGroup: drawLayer
+    },
   }));
 
   map.on(L.Draw.Event.CREATED, function (event) {
-    drawLayer.clearLayers().addLayer(event.layer);
+    drawLayer.addLayer(event.layer);
   });
 
   L.control.layers(baseMaps,overlayMaps).addTo(map);
