@@ -264,8 +264,14 @@
   function buildTable( features ) {
     //assemble a table from the geojson properties
 
+    if (table) clearTable();
+
     //first build the header row
     let fields = Object.keys(features[0].properties).filter(field => field != '_feature_id');
+
+    // Sometimes we only query geometry, and then the table will be empty
+    if (fields.length == 0)
+      return;
 
     let columns = fields.map(field => ({
       title: field,
@@ -273,8 +279,6 @@
     }));
 
     let data = features.map(feature => feature.properties);
-
-    if (table) clearTable();
 
     table = $('#table > table').DataTable({
       dom: dataTableLayout,
