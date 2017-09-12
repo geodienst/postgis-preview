@@ -106,8 +106,13 @@ class GeoQuery
 		return $columns;
 	}
 
-	public function execute(PDO $pdo)
+	public function execute(PDO $pdo, $field_formatter = null)
 	{
+		if ($field_formatter === null)
+			$field_formatter = function($field, $type) {
+				return sprintf('q."%s"', $field);
+			};
+		
 		$this->columns = $this->_queryColumns($pdo);
 
 			// Pick all the geometry columns
@@ -117,13 +122,8 @@ class GeoQuery
 			throw new Exception('Query does not contain any geometry columns');
 
 		// Create the outer select query, but give the geometry columns special
-		// treatment (as in convert those to GeoJSON and WGS84)
-		$sql_fields = array_map(function($field, $type) {
-			if ($type == 'geometry')
-				return sprintf('ST_AsGeoJSON(ST_Transform(q."%s", 4326)) as "%1$s"', $field);
-			else
-				return sprintf('q."%s"', $field);
-		}, array_keys($this->columns), $this->columns);
+		// treatment (e.g. convert those to GeoJSON and WGS84)
+		$sql_fields = array_map($field_formatter, array_keys($this->columns), $this->columns);
 
 		// Create the final select query
 		$query = 'SELECT ' . implode(', ', $sql_fields) . ' FROM (' . $this->query . ') AS q';
@@ -173,7 +173,12 @@ function query_columns($pdo, $query)
 
 function query_geojson($pdo, $query)
 {
-	$stmt = $query->execute($pdo);
+	$stmt = $query->execute($pdo, function($field, $type) {
+		if ($type == 'geometry')
+			return sprintf('ST_AsGeoJSON(ST_Transform(q."%s", 4326)) as "%1$s"', $field);
+		else
+			return sprintf('q."%s"', $field);
+	});
 
 	$features = [];
 
@@ -196,41 +201,26 @@ function query_geojson($pdo, $query)
 	];
 }
 
-function query_csv($pdo, $user_query, &$query)
+function query_csv($pdo, $query)
 {
-	// First determine the column types
-	$columns = query_columns($pdo, $user_query);
-		
-	// Pick all the geometry columns
-	$geometry_columns = array_keys($columns, 'geometry');
-
-	// Create the outer select query, but give the geometry columns special
-	// treatment (as in convert those to GeoJSON and WGS84)
-	$sql_fields = array_map(function($field, $type) {
+	$stmt = $query->execute($pdo, function($field, $type) {
 		if ($type == 'geometry')
 			return sprintf('ST_AsEWKT(q."%s") as "%1$s"', $field);
 		else
 			return sprintf('q."%s"', $field);
-	}, array_keys($columns), $columns);
-
-	// Generate the real query with the user query as inner query
-	$query = 'SELECT ' . implode(', ', $sql_fields) . ' FROM (' . $user_query . ') AS q';
-
-	$stmt = $pdo->query($query);
+	});
 
 	$stdout = fopen('php://output', 'w');
 
 	header('Content-Type: text/csv');
 
 	// Write column headers
-	fputcsv($stdout, array_keys($columns));
+	fputcsv($stdout, array_keys($query->columns));
 
 	while ($row = $stmt->fetch(PDO::FETCH_ASSOC))
 		fputcsv($stdout, $row);
 }
 
-$query = null;
-	
 try {
 	$format = isset($_GET['format']) ? $_GET['format'] : 'geojson';
 
@@ -239,13 +229,13 @@ try {
 
 	$query = new GeoQuery(rtrim($_GET['q'], ';'));
 
-	if (isset($_GET['limit']))
+	if (!empty($_GET['limit']))
 		$query->setLimit($_GET['limit']);
 
-	if (isset($_GET['bbox']))
+	if (!empty($_GET['bbox']))
 		$query->setBBox($_GET['bbox']);
 
-	if (isset($_GET['shapes']))
+	if (!empty($_GET['shapes']))
 		$query->addGeoJSON('shapes', json_decode($_GET['shapes']));
 
 	$config = require '../config.php';
@@ -258,7 +248,7 @@ try {
 			break;
 
 		case 'csv':
-			// query_csv($pdo, $user_query, $query);
+			query_csv($pdo, $query);
 			break;
 
 		default:

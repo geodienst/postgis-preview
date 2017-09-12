@@ -140,8 +140,8 @@
     request.done(function() {
       // Show (and update) download buttons
       $('#download').show();
-      $('#geojson').attr('href', 'sql.php?q=' + encodeURIComponent(sql) + '&format=geojson');
-      $('#csv').attr('href', 'sql.php?q=' + encodeURIComponent(sql) + '&format=csv');
+      $('#geojson').attr('href', 'sql.php?' + $.param(Object.assign({}, sql, {'format': 'geojson', 'limit': null})));
+      $('#csv').attr('href', 'sql.php?' + $.param(Object.assign({}, sql, {'format': 'csv', 'limit': null})));
     });
 
     request.fail(function() {
