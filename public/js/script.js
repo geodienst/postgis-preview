@@ -4,6 +4,8 @@
   var map = L.map('map')
     .setView([40.708816,-74.008799], 11);
 
+  let editor = null; // Will be set onload
+
   const highlightStyle = {
     fillColor: 'red',
     fillOpacity: 1.0
@@ -331,47 +333,29 @@
     }
   }
 
-  function resizeable(area) {
-    let pos;
-    let width;
-
-    let setWidth = function(preferredWidth, store) {
-      let width = Math.max(Math.min(preferredWidth, window.innerWidth - 200), 200);
-      $(area).width(width);
+  $('#sidebar').resizable({
+    min: () => 200,
+    max: () => window.innerWidth - 200, // Full width minus a bit to at least know there is a map
+    inverse: true,
+    callback: () => {
       map.invalidateSize();
-      if (store)
-        window.localStorage[name + '_width'] = width;
+      if (editor)
+        editor.refresh();
     }
+  });
 
-    area.find('.resize-handle').on('mousedown', function(e) {
-      pos = e.clientX;
-      width = $(area).width();
-      e.preventDefault();
-    });
-
-    $(document.body).on('mouseup', function(e) {
-      if (pos !== null) {
-        pos = null;
-        e.preventDefault();
-      }
-    });
-
-    $(document.body).on('mousemove', function(e) {
-      if (pos !== null) {
-        setWidth(width - (e.clientX - pos), true);
-        e.preventDefault();
-      }
-    });
-
-    if (window.localStorage[name + '_width'] !== undefined)
-      setWidth(window.localStorage[name + '_width']);
-  }
-
-  resizeable($('#sidebar'));
+  $('#editor').resizable({
+    min: () => 200,
+    max: () => window.innerHeight - 110, // full widow hight minus RUN button and header bar
+    callback: () => {
+      if (editor)
+        editor.refresh();
+    }
+  });
 
   //Load codemirror for syntax highlighting
   window.onload = function() {            
-    window.editor = CodeMirror.fromTextArea(document.getElementById('sqlPane'), {
+    editor = CodeMirror.fromTextArea(document.getElementById('sqlPane'), {
       mode: 'text/x-pgsql',
       indentWithTabs: true,
       smartIndent: true,

@@ -26,9 +26,12 @@
 	</div>
 	<div id="container">
 		<div id="sidebar">
-			<div class="resize-handle"></div>
+			<div class="horizontal resize-handle"></div>
+			<div id="editor">
+				<textarea id="sqlPane" class="form-control" required>/* Type your SQL here */</textarea>
+				<div class="vertical resize-handle"></div>
+			</div>
 			<div class="col-md-12">
-				<textarea id="sqlPane" class="form-control" rows="15" required>/* Type your SQL here */</textarea>
 				<div id="history-previous" class="btn btn-info disabled" title="Previous executed query [Alt+Up]">
 					<span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span>
 				</div>
@@ -69,6 +72,7 @@
 	<script src="//code.jquery.com/jquery-2.2.4.min.js"></script>
 	<script src="//unpkg.com/leaflet@1.2.0/dist/leaflet.js"></script>
 	<script src="//cdn.datatables.net/v/bs/dt-1.10.15/b-1.4.0/se-1.2.2/datatables.min.js"></script>
+	<script src="./js/resizable.js"></script>
 	<script src="./js/script.js"></script>
 	<script src="./js/codemirror-5.29.0/lib/codemirror.js"></script>
 	<script src="./js/codemirror-5.29.0/mode/sql/sql.js"></script>

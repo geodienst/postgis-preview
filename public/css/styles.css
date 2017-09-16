@@ -32,16 +32,51 @@ body {
   position: relative;
   flex: 0 0 auto;
   order: 1;
+  overflow-y: auto;
 }
 
-#sidebar .resize-handle {
+#editor {
+  position: relative;
+  margin-bottom: 15px;
+  width: 100%;
+}
+
+#editor #sqlPane,
+#editor .CodeMirror {
+  height: 100%;
+}
+
+.resize-handle {
   position: absolute;
+  z-index: 10;
+  transition: background 250ms;
+}
+
+.resize-handle:hover {
+  transition-delay: 250ms;
+  background: rgba(255, 255, 255, 0.4);
+}
+
+.active.resize-handle,
+.active.resize-handle:hover {
+  transition: none;
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.horizontal.resize-handle {
   top: 0;
   bottom: 0;
   left: -5px;
   width: 10px;
-  z-index: 10;
   cursor: ew-resize;
+}
+
+.vertical.resize-handle {
+  bottom: -5px;
+  left: 0;
+  right: 0;
+  height: 10px;
+  cursor: ns-resize;
 }
 
 .navbar .navbar-brand {
