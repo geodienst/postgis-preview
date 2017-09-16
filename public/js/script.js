@@ -1,10 +1,23 @@
 (function(){
   'use strict'
   //initialize a leaflet map
-  var map = L.map('map')
-    .setView([40.708816,-74.008799], 11);
+  const map = L.map('map');
 
-  let editor = null; // Will be set onload
+  // Try to restore the last map center & zoom
+  try {
+    map.setView(JSON.parse(localStorage['map_center']), parseFloat(localStorage['map_zoom']));
+  } catch (e) {
+    map.setView([40.708816,-74.008799], 11);
+  }
+
+  // If the map moves or zooms, remember the zoom and center
+  // (Could also be done on unload, but this way opening a second tab clones the position of the map!)
+  map.on('moveend zoomend', function() {
+    localStorage['map_center'] = JSON.stringify(map.getCenter());
+    localStorage['map_zoom'] = map.getZoom();
+  });
+
+  let editor = null; // Will be initialized onload
 
   const highlightStyle = {
     fillColor: 'red',
@@ -18,26 +31,26 @@
   var request;
 
   //add CartoDB 'dark matter' basemap
-  var darkmatter = L.tileLayer('http://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png', { maxZoom : 21,
+  const darkmatter = L.tileLayer('http://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png', { maxZoom : 21,
     attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, &copy; <a href="http://cartodb.com/attributions">CartoDB</a>'
   }).addTo(map);
 
-  var Esri_WorldImagery = L.tileLayer('http://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+  const Esri_WorldImagery = L.tileLayer('http://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
   maxZoom: 21, attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
   });
 
-  var baseMaps = {
+  const baseMaps = {
     "imagery": Esri_WorldImagery,
     "darkmatter": darkmatter
   };
 
   // Will contain the results from the query
-  var resultLayer = L.featureGroup().addTo(map);
+  const resultLayer = L.featureGroup().addTo(map);
 
   // Can be drawn on
-  var drawLayer = L.featureGroup().addTo(map);
+  const drawLayer = L.featureGroup().addTo(map);
 
-  var overlayMaps = {
+  const overlayMaps = {
     'features': resultLayer,
     'draw': drawLayer
   };
@@ -60,8 +73,10 @@
     drawLayer.addLayer(event.layer);
   });
 
+  // Layer control
   L.control.layers(baseMaps,overlayMaps).addTo(map);
 
+  // History
   var queryHistory = (localStorage.history) ? JSON.parse(localStorage.history) : [];
   var historyIndex = queryHistory.length;
   updateHistoryButtons();
