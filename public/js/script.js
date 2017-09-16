@@ -34,11 +34,31 @@
   // Will contain the results from the query
   var resultLayer = L.featureGroup().addTo(map);
 
+  // Can be drawn on
+  var drawLayer = L.featureGroup().addTo(map);
 
   var overlayMaps = {
-    'features': resultLayer
+    'features': resultLayer,
+    'draw': drawLayer
   };
 
+  map.addControl(new L.Control.Draw({
+    draw: {
+      marker: false,
+      polyline: false,
+      polygon: {
+        allowIntersection: false,
+        showArea: true
+      }
+    },
+    edit: {
+      featureGroup: drawLayer
+    },
+  }));
+
+  map.on(L.Draw.Event.CREATED, function (event) {
+    drawLayer.addLayer(event.layer);
+  });
 
   L.control.layers(baseMaps,overlayMaps).addTo(map);
 
@@ -74,11 +94,14 @@
 
     if ($('#limit-to-view').is(':checked'))
       sql.bbox = map.getBounds().toBBoxString();
-  
-    addToHistory(sql);
+
+    if (drawLayer.getLayers().length)
+      sql.shapes = JSON.stringify(drawLayer.toGeoJSON());
 
     //clear the map
     resultLayer.clearLayers();
+
+    addToHistory(sql);
 
     var url = 'sql.php?' + $.param(sql);
 
@@ -119,8 +142,8 @@
     request.done(function() {
       // Show (and update) download buttons
       $('#download').show();
-      $('#geojson').attr('href', 'sql.php?q=' + encodeURIComponent(sql) + '&format=geojson');
-      $('#csv').attr('href', 'sql.php?q=' + encodeURIComponent(sql) + '&format=csv');
+      $('#geojson').attr('href', 'sql.php?' + $.param(Object.assign({}, sql, {'format': 'geojson', 'limit': null})));
+      $('#csv').attr('href', 'sql.php?' + $.param(Object.assign({}, sql, {'format': 'csv', 'limit': null})));
     });
 
     request.fail(function() {
