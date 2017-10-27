@@ -159,7 +159,7 @@ function is_associative($data) {
 		$expected = 0;
 
 		foreach ($data as $key => $value)
-			if ($key != $expected++)
+			if ($key !== $expected++)
 				return true;
 
 		return false;
