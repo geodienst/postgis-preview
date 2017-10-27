@@ -7,7 +7,7 @@ ignore_user_abort(false);
 
 class GeoQuery
 {
-	protected $geojson_layers = [];
+	protected $with_atoms = [];
 
 	protected $bbox;
 
@@ -23,12 +23,29 @@ class GeoQuery
 
 	public function __construct($query)
 	{
-		$this->query = $query;
+		// If the query starts with a "WITH xxx AS yyy, etc." statement, extract that part and
+		// add it to the with_atoms array. These, together with the layers added by addGeoJSON,
+		// are prepended to the final query.
+		if (preg_match('/^WITH (\w+ AS \(.+?\)(,\s*\w+ AS \(.+?\))*)(.+?)$/i', $query, $match)) {
+			$this->with_atoms[] = $match[1];
+			$this->query = $match[2];
+		} else {
+			$this->query = $query;
+		}
 	}
 
 	public function addGeoJSON($name, $json)
 	{
-		$this->geojson_layers[$name] = $json;
+		if (!preg_match('/^[a-z][a-z0-9_]*$/', $name))
+			throw new InvalidArgumentException('Invalid geojson layer name');
+
+		$json = json_encode($data);
+
+		$this->with_atoms = array_mergee($this->with_atoms, [
+			"{$name}_data AS (SELECT '{$json}'::json as fc)",
+			"{$name}_features AS (SELECT json_array_elements(fc->'features') as feature FROM {$name}_data)",
+			"{$name} AS (SELECT ST_SetSRID(ST_GeomFromGeoJSON(feature->>'geometry'), 4326) as geom FROM {$name}_features)"
+		]);
 	}
 
 	public function setBBox($bbox)
@@ -46,25 +63,12 @@ class GeoQuery
 		$this->limit = $limit;
 	}
 
-	protected function _addGeoJSONLayers($query)
+	protected function _addWithStatement($query)
 	{
-		if (count($this->geojson_layers) === 0)
+		if (count($this->with_atoms) === 0)
 			return $query;
 
-		$with_atoms = [];
-
-		foreach ($this->geojson_layers as $name => $data)
-		{
-			$json = json_encode($data);
-
-			$with_atoms = array_merge([
-				"{$name}_data AS (SELECT '{$json}'::json as fc)",
-				"{$name}_features AS (SELECT json_array_elements(fc->'features') as feature FROM {$name}_data)",
-				"{$name} AS (SELECT ST_SetSRID(ST_GeomFromGeoJSON(feature->>'geometry'), 4326) as geom FROM {$name}_features)"
-			], $with_atoms);
-		}
-
-		return sprintf('WITH %s %s', implode("\n,", $with_atoms), $query);
+		return sprintf('WITH %s %s', implode("\n,", $this->with_atoms), $query);
 	}
 
 	protected function _addBboxCondition($query)
@@ -92,7 +96,7 @@ class GeoQuery
 	{
 		$query = 'SELECT q.* FROM (' . $this->query . ') AS q LIMIT 0';
 
-		$query = $this->_addGeoJSONLayers($query);
+		$query = $this->_addWithStatement($query);
 
 		$stmt = $pdo->query($query);
 
@@ -129,7 +133,7 @@ class GeoQuery
 		$query = 'SELECT ' . implode(', ', $sql_fields) . ' FROM (' . $this->query . ') AS q';
 
 		// Add the WITH statement
-		$query = $this->_addGeoJSONLayers($query);
+		$query = $this->_addWithStatement($query);
 
 		// If there is a bbox filter, add that as a condition to final result query
 		$query = $this->_addBboxCondition($query);
