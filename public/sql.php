@@ -7,7 +7,7 @@ ignore_user_abort(false);
 
 class GeoQuery
 {
-	protected $geojson_layers;
+	protected $geojson_layers = [];
 
 	protected $bbox;
 
@@ -15,9 +15,9 @@ class GeoQuery
 
 	protected $query;
 
-	public $columns;
+	public $columns = [];
 
-	public $geometry_columns;
+	public $geometry_columns = [];
 
 	public $sql;
 
