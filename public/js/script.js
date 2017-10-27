@@ -1,5 +1,11 @@
 (function(){
   'use strict'
+
+  // Numeric column types that the choropleth visualisation can process
+  function isNumericType(type) {
+    return /^float\d*|int\d*|numeric$/.test(type);
+  }
+
   //initialize a leaflet map
   const map = L.map('map');
 
@@ -139,7 +145,14 @@
         });
         $('#notifications').removeClass().addClass('alert alert-success');
         if (data.features.some(feature => feature.geometry)) {
-          addLayer(data.features.filter(feature => feature.geometry)); //draw the map layer
+          // Find out if and how many numeric feature properties there are
+          let numericProperties = Object.entries(data._columns).filter(entry => isNumericType(entry[1]));
+
+          //draw the map layer
+          if (numericProperties.length === 1)
+            addChoroplethLayer(data, numericProperties[0][0]);
+          else
+            addLayer(data.features.filter(feature => feature.geometry));
           $('#notifications').text(data.features.length + ' features returned.');
         } else {
           // There is no map to display, so switch to the data view
@@ -219,6 +232,38 @@
       row.append($("<td></td>").text(properties[keys[k]]));
     }
     return table.get(0);
+  }
+
+  function addChoroplethLayer(features, property) {
+    //create an L.geoJson layer, add it to the map
+    L.choropleth(features, {
+      valueProperty: property,
+      style: {
+          color: '#fff', // border color
+          weight: 1,
+          fillOpacity: 0.7
+      },
+      scale: ['white', 'red'],
+      steps: 10,
+      mode: 'q',
+      onEachFeature: function ( feature, layer ) {
+        if (feature.geometry.type !== 'Point') {
+          layer.bindPopup(propertiesTable(feature.properties));
+        }
+      },
+      pointToLayer: function ( feature, latlng ) {
+        return L.circleMarker(latlng, {
+          radius: 4,
+          fillColor: "#ff7800",
+          color: "#000",
+          weight: 1,
+          opacity: 1,
+          fillOpacity: 0.8
+        }).bindPopup(propertiesTable(feature.properties));
+      }
+    }).addTo(resultLayer);
+
+    map.fitBounds(resultLayer.getBounds());
   }
 
   function addLayer( features ) {
