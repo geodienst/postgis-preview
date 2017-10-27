@@ -154,6 +154,53 @@ function print_json($data) {
 	echo json_encode($data, JSON_PRETTY_PRINT);
 }
 
+function is_associative($data) {
+	if (is_array($data)) {
+		$expected = 0;
+
+		foreach ($data as $key => $value)
+			if ($key != $expected++)
+				return true;
+
+		return false;
+	}
+	else if (is_object($data)) {
+		if ($data instanceof \Iterator)
+			return $data->valid() && $data->key() !== 0;
+		
+		return true;
+	} else {
+		return false;
+	}
+}
+
+function stream_json($fh, $data) {
+	$is_object = is_associative($data);
+	$is_array = !$is_object && (is_object($data) || is_array($data));
+
+	if ($is_array || $is_object) {
+		fwrite($fh, $is_object ? '{' : '[');
+		
+		$first = true;
+		foreach ($data as $key => $element) {
+			if (!$first)
+				fwrite($fh, ',');
+			else
+				$first = false;
+
+			if ($is_object)
+				fwrite($fh, json_encode((string) $key) . ':');
+
+			stream_json($fh, $element);
+		}
+
+		fwrite($fh, $is_object ? '}' : ']');
+	}
+	else {
+		fwrite($fh, json_encode($data));
+	}
+}
+
 function connect($url)
 {
 	$pdo = new PDO($url);
@@ -184,25 +231,27 @@ function query_geojson($pdo, $query)
 			return sprintf('q."%s"', $field);
 	});
 
-	$features = [];
-
 	// Convert the final result set to one large GeoJSON Feature collection
-	while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-		foreach ($query->geometry_columns as $geometry_column) {
-			$features[] = [
-				'type' => 'Feature',
-				'properties' => array_diff_key($row, array_flip($query->geometry_columns)),
-				'geometry' =>  json_decode($row[$geometry_column])
-			];
+	$feature_iterator = function() use ($stmt, $query) {
+		while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+			foreach ($query->geometry_columns as $geometry_column) {
+				yield [
+					'type' => 'Feature',
+					'properties' => array_diff_key($row, array_flip($query->geometry_columns)),
+					'geometry' =>  json_decode($row[$geometry_column])
+				];
+			}
 		}
-	}
+	};
 
-	return [
+	header('Content-Type: application/json');
+	$stdout = fopen('php://output', 'w');
+	stream_json($stdout, [
 		'type' => 'FeatureCollection',
 		'_query' => $query->sql,
 		'_columns' => $query->columns,
-		'features' => $features
-	];
+		'features' => $feature_iterator()
+	]);
 }
 
 function query_csv($pdo, $query)
@@ -259,8 +308,7 @@ try {
 
 	switch ($format) {
 		case 'geojson':
-			$output = query_geojson($pdo, $query);
-			print_json($output);
+			query_geojson($pdo, $query);
 			break;
 
 		case 'csv':
