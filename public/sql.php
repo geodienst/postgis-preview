@@ -231,7 +231,19 @@ try {
 	if (empty($_GET['q']))
 		throw new RuntimeException('Missing query parameter');
 
-	$query = new GeoQuery(rtrim($_GET['q'], ';'));
+	// Remove left-over whitespace
+	$query_text = trim($_GET['q']);
+
+	// Trim leading comments
+	$query_text = preg_replace('/^(\s*\/\*.*?\*\/)*\s*/s', '', $query_text);
+
+	// Trim trailing comments
+	$query_text = preg_replace('/\s*(\/\*.*?\*\/\s*)*$/s', '', $query_text);
+
+	// Remove the trailing ';' from the query
+	$query_text = rtrim($query_text, ';');
+
+	$query = new GeoQuery($query_text);
 
 	if (!empty($_GET['limit']))
 		$query->setLimit($_GET['limit']);
