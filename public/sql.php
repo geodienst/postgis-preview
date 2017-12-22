@@ -5,6 +5,8 @@ ini_set('display_errors', true);
 
 ignore_user_abort(false);
 
+require '../util.php';
+
 class GeoQuery
 {
 	protected $with_atoms = [];
@@ -149,11 +151,6 @@ class GeoQuery
 	}
 }
 
-function print_json($data) {
-	header('Content-Type: application/json');
-	echo json_encode($data, JSON_PRETTY_PRINT);
-}
-
 function is_associative($data) {
 	if (is_array($data)) {
 		$expected = 0;
@@ -199,13 +196,6 @@ function stream_json($fh, $data) {
 	else {
 		fwrite($fh, json_encode($data));
 	}
-}
-
-function connect($url)
-{
-	$pdo = new PDO($url);
-	$pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-	return $pdo;
 }
 
 function query_columns($pdo, $query)
@@ -277,6 +267,9 @@ function query_csv($pdo, $query)
 try {
 	$format = isset($_GET['format']) ? $_GET['format'] : 'geojson';
 
+	if (empty($_GET['db']))
+		throw new RuntimeException('Missing database parameter');
+
 	if (empty($_GET['q']))
 		throw new RuntimeException('Missing query parameter');
 
@@ -303,8 +296,7 @@ try {
 	if (!empty($_GET['shapes']))
 		$query->addGeoJSON('shapes', json_decode($_GET['shapes']));
 
-	$config = require '../config.php';
-	$pdo = connect($config['DATABASE_URL']);
+	$pdo = connect($_GET['db']);
 
 	switch ($format) {
 		case 'geojson':

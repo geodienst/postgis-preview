@@ -92,6 +92,8 @@
 
   var abortButton = $('#abort').detach();
 
+  const databaseSelector = $('#database-selector');
+
   function abortQuery() {
     request.abort();
     $('#query-control').removeClass('active disabled');
@@ -107,6 +109,7 @@
     clearTable();
 
     let sql = {
+      db: databaseSelector.val(),
       q: editor.getDoc().getValue()
     };
     
@@ -458,8 +461,22 @@
     editor.replaceRange('\n', {line:2,ch:0}); // create newline for editing
     editor.setCursor(2,0);
 
-    $.getJSON('schema.php', function(schema) {
-      editor.setOption('hintOptions', {tables: schema});
+    $.getJSON('config.php', function(config) {
+      databaseSelector.empty();
+
+      config.databases.forEach(function(database) {
+        console.log(database);
+        $('<option>').text(database).appendTo(databaseSelector);
+      });
+
+      databaseSelector.val(config.databases[0]);
+      databaseSelector.change();
+    });
+
+    databaseSelector.on('change', function() {
+      $.getJSON('schema.php?db=' + $(this).val(), function(schema) {
+        editor.setOption('hintOptions', {tables: schema});
+      });
     });
   };
 }());

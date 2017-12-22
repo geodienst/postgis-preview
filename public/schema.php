@@ -3,17 +3,7 @@
 error_reporting(E_ALL);
 ini_set('display_errors', true);
 
-function print_json($data) {
-	header('Content-Type: application/json');
-	echo json_encode($data, JSON_PRETTY_PRINT);
-}
-
-function connect($url)
-{
-	$pdo = new PDO($url);
-	$pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-	return $pdo;
-}
+require_once '../util.php';
 
 function quote_list($pdo, $list)
 {
@@ -75,9 +65,7 @@ function query_schema($pdo)
 }
 
 try {
-	$config = require '../config.php';
-	$pdo = connect($config['DATABASE_URL']);
-
+	$pdo = connect($_GET['db']);
 	$schema = query_schema($pdo);
 	print_json($schema);
 } catch (Exception $e) {
