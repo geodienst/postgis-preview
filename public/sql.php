@@ -34,14 +34,14 @@ class GeoQuery
 		}
 	}
 
-	public function addGeoJSON($name, $json)
+	public function addGeoJSON($name, $data)
 	{
 		if (!preg_match('/^[a-z][a-z0-9_]*$/', $name))
 			throw new InvalidArgumentException('Invalid geojson layer name');
 
 		$json = json_encode($data);
 
-		$this->with_atoms = array_mergee($this->with_atoms, [
+		$this->with_atoms = array_merge($this->with_atoms, [
 			"{$name}_data AS (SELECT '{$json}'::json as fc)",
 			"{$name}_features AS (SELECT json_array_elements(fc->'features') as feature FROM {$name}_data)",
 			"{$name} AS (SELECT ST_SetSRID(ST_GeomFromGeoJSON(feature->>'geometry'), 4326) as geom FROM {$name}_features)"
