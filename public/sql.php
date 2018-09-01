@@ -3,6 +3,8 @@
 error_reporting(E_ALL);
 ini_set('display_errors', true);
 
+set_time_limit(300);
+
 ignore_user_abort(false);
 
 require '../util.php';
@@ -214,12 +216,16 @@ function query_columns($pdo, $query)
 
 function query_geojson($pdo, $query)
 {
+	$start_time = microtime(true);
+
 	$stmt = $query->execute($pdo, function($field, $type) {
 		if ($type == 'geometry')
 			return sprintf('ST_AsGeoJSON(ST_Transform(q."%s", 4326)) as "%1$s"', $field);
 		else
 			return sprintf('q."%s"', $field);
 	});
+
+	$execution_time = microtime(true) - $start_time;
 
 	// Convert the final result set to one large GeoJSON Feature collection
 	$feature_iterator = function() use ($stmt, $query) {
@@ -240,6 +246,7 @@ function query_geojson($pdo, $query)
 		'type' => 'FeatureCollection',
 		'_query' => $query->sql,
 		'_columns' => $query->columns,
+		'_timing' => $execution_time,
 		'features' => $feature_iterator()
 	]);
 }

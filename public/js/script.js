@@ -156,7 +156,9 @@
             addChoroplethLayer(data, numericProperties[0][0]);
           else
             addLayer(data.features.filter(feature => feature.geometry));
-          $('#notifications').text(data.features.length + ' features returned.');
+
+          var duration = Math.round(data._timing * 1000);
+          $('#notifications').text(data.features.length + ' features returned in ' + duration + 'ms.');
         } else {
           // There is no map to display, so switch to the data view
           $('#notifications').html(data.features.length + ' features returned.<br/>No geometries returned, see the <a href="#" class="data-view">data view</a> for results.');
