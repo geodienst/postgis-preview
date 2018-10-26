@@ -152,7 +152,7 @@
           let numericProperties = Object.entries(data._columns).filter(entry => isNumericType(entry[1]));
 
           //draw the map layer
-          if (numericProperties.length === 1)
+          if (numericProperties.length > 0)
             addChoroplethLayer(data, numericProperties[0][0]);
           else
             addLayer(data.features.filter(feature => feature.geometry));
