@@ -19,6 +19,8 @@ class GeoQuery
 
 	protected $query;
 
+	protected $parameters = [];
+
 	public $columns = [];
 
 	public $geometry_columns = [];
@@ -67,6 +69,15 @@ class GeoQuery
 		$this->limit = $limit;
 	}
 
+	public function setParameters($parameters)
+	{
+		foreach ($parameters as $key => $value)
+			if (substr($key, 0, 1) !== ':')
+				throw new InvalidArgumentException("Parameter keys have to start with ':'");
+
+		$this->parameters = $parameters;
+	}
+
 	protected function _addWithStatement($query)
 	{
 		if (count($this->with_atoms) === 0)
@@ -102,7 +113,9 @@ class GeoQuery
 
 		$query = $this->_addWithStatement($query);
 
-		$stmt = $pdo->query($query);
+		$stmt = $pdo->prepare($query);
+
+		$stmt->execute($this->parameters);
 
 		$columns = [];
 
@@ -148,8 +161,11 @@ class GeoQuery
 		// For debugging
 		$this->sql = $query;
 
-		// This adds the 'with' statement and runs the query
-		return $pdo->query($query);
+		$stmt = $pdo->prepare($query);
+
+		$stmt->execute($this->parameters);
+
+		return $stmt;
 	}
 }
 
@@ -302,6 +318,9 @@ try {
 
 	if (!empty($_GET['shapes']))
 		$query->addGeoJSON('shapes', json_decode($_GET['shapes']));
+
+	if (!empty($_GET['parameters']))
+		$query->setParameters(json_decode($_GET['parameters'], true));
 
 	$pdo = connect($_GET['db']);
 

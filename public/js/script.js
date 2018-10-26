@@ -6,6 +6,22 @@
     return /^float\d*|int\d*|numeric$/.test(type);
   }
 
+  function createElement(name, attributes = {}, children = []) {
+    const el = document.createElement(name);
+
+    Object.entries(attributes).forEach(entry => {
+      el[entry[0]] = entry[1];
+    });
+
+    children.forEach(child => {
+      if (!(child instanceof Node))
+        child = document.createTextNode(child);
+      el.appendChild(child);
+    });
+
+    return el;
+  }
+
   //initialize a leaflet map
   const map = L.map('map');
 
@@ -132,6 +148,11 @@
 
     if (drawLayer.getLayers().length)
       sql.shapes = JSON.stringify(drawLayer.toGeoJSON());
+
+    sql.parameters = JSON.stringify(Array.from(document.querySelectorAll('#parameters input')).reduce((params, input) => {
+      params[input.name] = input.value;
+      return params;
+    }, {}));
 
     //clear the map
     resultLayer.clearLayers();
@@ -452,6 +473,27 @@
     }
   });
 
+  let parameters = {};
+
+  function setAvailableParameters(newParameters) {
+    Object.entries(parameters).forEach(entry => {
+      if (!newParameters.includes(entry[0])) {
+        entry[1].parentNode.removeChild(entry[1]);
+        delete parameters[entry[0]];
+      }
+    });
+
+    newParameters.forEach(parameter => {
+      if (!(parameter in parameters)) {
+        parameters[parameter] = createElement('div', {}, [
+          createElement('label', {'for': 'param-' + parameter.substring(1)}, [parameter]),
+          createElement('input', {'type': 'text', 'name': parameter})
+        ]);
+        document.getElementById('parameters').appendChild(parameters[parameter]);
+      }
+    })
+  }
+
   //Load codemirror for syntax highlighting
   window.onload = function() {            
     editor = CodeMirror.fromTextArea(document.getElementById('sqlPane'), {
@@ -473,6 +515,18 @@
     });
     editor.replaceRange('\n', {line:2,ch:0}); // create newline for editing
     editor.setCursor(2,0);
+
+    editor.on('changes', function() {
+      const pattern = /:\w+/g;
+      const value = editor.getDoc().getValue();
+      let match = null;
+      let matches = [];
+      while (match = pattern.exec(value)) {
+        if (!matches.includes(match[0]))
+          matches.push(match[0])
+      }
+      setAvailableParameters(matches);
+    });
 
     $.getJSON('config.php', function(config) {
       databaseSelector.empty();
