@@ -54,7 +54,18 @@
   const resultLayer = L.featureGroup().addTo(map);
 
   // Can be drawn on
-  const drawLayer = L.featureGroup().addTo(map);
+  let drawLayer = null;
+  try {
+    drawLayer = L.geoJSON(JSON.parse(localStorage['shapes']));
+  } catch (e) {
+    console.log(e);
+    drawLayer = L.featureGroup();
+  }
+  drawLayer.addTo(map);
+
+  drawLayer.on('layeradd layerremove', function(event) {
+    localStorage['shapes'] = JSON.stringify(drawLayer.toGeoJSON());
+  });
 
   const overlayMaps = {
     'features': resultLayer,
