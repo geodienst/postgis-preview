@@ -527,13 +527,13 @@
     editor.setCursor(2,0);
 
     editor.on('changes', function() {
-      const pattern = /:\w+/g;
+      const pattern = /[^\:]:(\w+)/g;
       const value = editor.getDoc().getValue();
       let match = null;
       let matches = [];
       while (match = pattern.exec(value)) {
-        if (!matches.includes(match[0]))
-          matches.push(match[0])
+        if (!matches.includes(match[1]))
+          matches.push(match[1])
       }
       setAvailableParameters(matches);
     });

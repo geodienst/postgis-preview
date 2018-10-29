@@ -71,11 +71,10 @@ class GeoQuery
 
 	public function setParameters($parameters)
 	{
-		foreach ($parameters as $key => $value)
-			if (substr($key, 0, 1) !== ':')
-				throw new InvalidArgumentException("Parameter keys have to start with ':'");
+		$this->parameters = [];
 
-		$this->parameters = $parameters;
+		foreach ($parameters as $key => $value)
+			$this->parameters[':' . $key] = $value;
 	}
 
 	protected function _addWithStatement($query)
