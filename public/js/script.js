@@ -150,7 +150,8 @@
       sql.shapes = JSON.stringify(drawLayer.toGeoJSON());
 
     sql.parameters = JSON.stringify(Array.from(document.querySelectorAll('#parameters input')).reduce((params, input) => {
-      params[input.name] = input.value;
+      if (input.value !== '')
+        params[input.name] = input.value;
       return params;
     }, {}));
 
@@ -485,9 +486,18 @@
 
     newParameters.forEach(parameter => {
       if (!(parameter in parameters)) {
+        const key = 'param_' + parameter;
+        const value = key in localStorage ? localStorage[key] : '';
         parameters[parameter] = createElement('div', {}, [
           createElement('label', {'for': 'param-' + parameter.substring(1)}, [parameter]),
-          createElement('input', {'type': 'text', 'name': parameter})
+          createElement('input', {
+            'type': 'text',
+            'name': parameter,
+            'value': value,
+            'onchange': function() {
+              localStorage[key] = this.value;
+            }
+          })
         ]);
         document.getElementById('parameters').appendChild(parameters[parameter]);
       }
