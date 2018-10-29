@@ -546,11 +546,16 @@
         $('<option>').text(database).appendTo(databaseSelector);
       });
 
-      databaseSelector.val(config.databases[0]);
+      const preferredDatabaseIndex = ('database' in localStorage)
+        ? config.databases.findIndex((val) => val == localStorage['database'])
+        : -1;
+
+      databaseSelector.val(config.databases[preferredDatabaseIndex !== -1  ? preferredDatabaseIndex : 0]);
       databaseSelector.change();
     });
 
     databaseSelector.on('change', function() {
+      localStorage['database'] = $(this).val();
       $.getJSON('schema.php?db=' + $(this).val(), function(schema) {
         editor.setOption('hintOptions', {tables: schema});
       });
