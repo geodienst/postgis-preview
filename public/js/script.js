@@ -162,6 +162,8 @@
 
     var url = 'sql.php?' + $.param(sql);
 
+    var startTime = new Date();
+
     //pass the query to the sql api endpoint
     request = $.getJSON(url, function(data) {
       // Show any notifications
@@ -204,6 +206,35 @@
       $('#run').removeClass('active disabled');
       abortButton.detach();
     });
+
+    if ('Notification' in window && Notification.permission === 'granted') {
+      request.done(function(data) {
+        if (((new Date()) - startTime) > 30 * 1000) {
+          let notification = null;
+
+          if (data.error)
+            notification = new Notification('Query failed', {body: data.error, renotify: true});
+          else if (data.features.length)
+            notification = new Notification('Query finished', {body: data.features.length + ' features returned', renotify: true});
+          else
+            notification = new Notification('Query finished', {body: 'No features returned', renotify: true});
+
+          function close() {
+            notification.close();
+            window.removeEventListener('focus', close);
+          }
+
+          window.addEventListener('focus', close);
+
+          notification.onclick = function() {
+            window.focus();
+            close();
+          }
+
+          notification.show();
+        }
+      });
+    }
 
     request.done(function() {
       // Show (and update) download buttons
@@ -277,7 +308,7 @@
     L.choropleth(features, {
       valueProperty: property,
       style: {
-          color: '#fff', // border color
+          color: null, // border color
           weight: 1,
           fillOpacity: 0.7
       },
@@ -560,5 +591,8 @@
         editor.setOption('hintOptions', {tables: schema});
       });
     });
+
+    if ('Notification' in window && Notification.permission != 'granted' && Notification.permission != 'denied')
+      Notification.requestPermission();
   };
 }());
