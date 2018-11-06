@@ -82,7 +82,7 @@ class GeoQuery
 		if (count($this->with_atoms) === 0)
 			return $query;
 
-		return sprintf('WITH %s %s', implode("\n,", $this->with_atoms), $query);
+		return sprintf("WITH %s\n%s", implode(",\n", $this->with_atoms), $query);
 	}
 
 	protected function _addBboxCondition($query)
@@ -365,6 +365,7 @@ try {
 } catch (Exception $e) {
 	print_json([
 		'error' => $e->getMessage(),
+		'line' => $e->getLine(),
 		'query' => $query
 	]);
 }
