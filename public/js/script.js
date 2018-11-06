@@ -182,6 +182,7 @@
           feature.properties._feature_id = index;
         });
         $('#notifications').removeClass().addClass('alert alert-success');
+
         if (data.features.some(feature => feature.geometry)) {
           // Find out if and how many numeric feature properties there are
           let numericProperties = Object.entries(data._columns).filter(entry => isNumericType(entry[1]));
@@ -335,9 +336,19 @@
     map.fitBounds(resultLayer.getBounds());
   }
 
+  var ExtendedGeoJSON = L.GeoJSON.extend({
+    addData: function(feature) {
+      if (feature.type !== 'Image') 
+        return L.GeoJSON.prototype.addData.call(this, feature);
+
+      const geometry = L.GeoJSON.geometryToLayer(feature.geometry);
+      return this.addLayer(L.imageOverlay(feature.data, geometry.getBounds()));
+    }
+  });
+
   function addLayer( features ) {
     //create an L.geoJson layer, add it to the map
-    L.geoJson(features, {
+    var layer = new ExtendedGeoJSON(features, {
       style: {
           color: '#fff', // border color
           fillColor: 'steelblue',
@@ -362,7 +373,9 @@
           fillOpacity: 0.8
         }).bindPopup(propertiesTable(feature.properties));
       }
-    }).addTo(resultLayer);
+    });
+
+    layer.addTo(resultLayer);
 
     map.fitBounds(resultLayer.getBounds());
   }

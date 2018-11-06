@@ -24,5 +24,6 @@ function connect($db)
 
 	$pdo = new PDO($databases[$db]);
 	$pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+	$pdo->query("SET postgis.gdal_enabled_drivers = 'ENABLE_ALL'");
 	return $pdo;
 }

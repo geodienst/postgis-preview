@@ -135,11 +135,13 @@ class GeoQuery
 		
 		$this->columns = $this->_queryColumns($pdo);
 
-			// Pick all the geometry columns
+		// Pick all the geometry columns
 		$this->geometry_columns = array_keys($this->columns, 'geometry');
 
-		if (count($this->geometry_columns) === 0)
-			throw new Exception('Query does not contain any geometry columns');
+		$this->raster_columns = array_keys($this->columns, 'raster');
+
+		if (count($this->geometry_columns) + count($this->raster_columns) === 0)
+			throw new Exception('Query does not contain any geometry or raster columns');
 
 		// Create the outer select query, but give the geometry columns special
 		// treatment (e.g. convert those to GeoJSON and WGS84)
@@ -236,6 +238,11 @@ function query_geojson($pdo, $query)
 	$stmt = $query->execute($pdo, function($field, $type) {
 		if ($type == 'geometry')
 			return sprintf('ST_AsGeoJSON(ST_Transform(q."%s", 4326)) as "%1$s"', $field);
+		else if ($type == 'raster')
+			return sprintf('
+				ST_AsGeoJSON(ST_Transform(ST_SetSRID(ST_Envelope(q."%s"), ST_SRID(q."%1$s")), 4326)) as "%1$s_geometry",
+				(\'data:image/png;base64,\' || encode(ST_AsPNG(ST_ColorMap(ST_Transform(q."%1$s", 4326))), \'base64\')) as "%1$s_data"
+			', $field);
 		else
 			return sprintf('q."%s"', $field);
 	});
@@ -244,12 +251,32 @@ function query_geojson($pdo, $query)
 
 	// Convert the final result set to one large GeoJSON Feature collection
 	$feature_iterator = function() use ($stmt, $query) {
+		$hidden_columns = array_merge(
+			$query->geometry_columns,
+			array_reduce(
+				$query->raster_columns,
+				function($acc, $raster_column) {
+					return array_merge($acc, [
+						$raster_column . '_geometry',
+						$raster_column . '_data']);
+				},
+				[]));
+
 		while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
 			foreach ($query->geometry_columns as $geometry_column) {
 				yield [
 					'type' => 'Feature',
-					'properties' => array_diff_key($row, array_flip($query->geometry_columns)),
+					'properties' => array_diff_key($row, array_flip($hidden_columns)),
 					'geometry' =>  json_decode($row[$geometry_column])
+				];
+			}
+
+			foreach ($query->raster_columns as $raster_column) {
+				yield [
+					'type' => 'Image',
+					'properties' => array_diff_key($row, array_flip($hidden_columns)),
+					'geometry' => json_decode($row[$raster_column . '_geometry']),
+					'data' => $row[$raster_column . '_data']
 				];
 			}
 		}
