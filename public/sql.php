@@ -241,7 +241,7 @@ function query_geojson($pdo, $query)
 		else if ($type == 'raster')
 			return sprintf('
 				ST_AsGeoJSON(ST_Transform(ST_SetSRID(ST_Envelope(q."%s"), ST_SRID(q."%1$s")), 4326)) as "%1$s_geometry",
-				(\'data:image/png;base64,\' || encode(ST_AsPNG(ST_ColorMap(ST_Transform(q."%1$s", 4326))), \'base64\')) as "%1$s_data"
+				(\'data:image/png;base64,\' || encode(ST_AsPNG(ST_Transform(q."%1$s", 4326)), \'base64\')) as "%1$s_data"
 			', $field);
 		else
 			return sprintf('q."%s"', $field);
