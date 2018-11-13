@@ -309,7 +309,7 @@
     L.choropleth(features, {
       valueProperty: property,
       style: {
-          color: null, // border color
+          color: '#fff', // border color
           weight: 1,
           fillOpacity: 0.7
       },
