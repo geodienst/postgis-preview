@@ -571,7 +571,7 @@
     editor.setCursor(2,0);
 
     editor.on('changes', function() {
-      const pattern = /[^\:]:(\w+)/g;
+      const pattern = /[^\:\\]:(\w+)/g;
       const value = editor.getDoc().getValue();
       let match = null;
       let matches = [];
